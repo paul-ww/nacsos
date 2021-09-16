@@ -14,7 +14,6 @@ import json, csv
 import decimal
 from django.core import management
 from .tasks import *
-from celery import group
 from utils.tm_mgmt import *
 import pandas as pd
 from sklearn.preprocessing import normalize

@@ -4,9 +4,7 @@ from scoping.models import *
 from tmv_app.tasks import *
 from parliament.models import Paragraph, Utterance
 
-from celery import *
 from django.db.models import Q, Count, Func, F, Sum, Avg, Subquery, OuterRef, Value as V
-from celery import group
 import pandas as pd
 from multiprocess import Pool
 
