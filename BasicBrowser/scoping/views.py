@@ -1285,8 +1285,8 @@ def create_query(request, pid):
     qtext  = request.POST['qtext']
 
     cred = request.POST.get('credentials',None)
-    collections = request.POST.get('collections', None)
-    wos_db = request.POST.get('wos_db', None)
+    wos_editions = request.POST.get('wos_editions', None)
+    wos_collection = request.POST.get('wos_collection', None)
     if cred:
         cred = True
 
@@ -1312,8 +1312,8 @@ def create_query(request, pid):
         date = timezone.now(),
         database = qdb,
         credentials = cred,
-        editions = collections,
-        wos_collections = wos_db
+        wos_editions = wos_collections,
+        wos_collection = wos_collection
     )
     q.save()
 

@@ -110,9 +110,9 @@ Use this form to submit a new query, which will be run in the background. Be awa
   </div>
 
   <div>
-      <h4> Web of Science Database </h4>
-      <input type="text" id="wos_db_input" name="wos_db">
-      <label class="form-text-label" for="wos_db_input">Enter the web of science
+      <h4> Web of Science Collection </h4>
+      <input type="text" id="wos_collection_input" name="wos_collection">
+      <label class="form-text-label" for="wos_collection_input">Enter the web of science
       database you would like to search (availability
       may depend on your credentials). Leave blank for default (usually Web of Science Core Collection).
       N.B. anything other than WoS Core may result in more results but with less information about them.
@@ -121,12 +121,11 @@ Use this form to submit a new query, which will be run in the background. Be awa
   </div>
 
   <div>
-      <h4> Collection list </h4>
-      <input type="text" id="collection_list" name="collections">
-      <label class="form-text-label" for="collection_list">Enter a comma separated
+      <h4> WOS Editions </h4>
+      <input type="text" id="wos_editions_list" name="wos_editions">
+      <label class="form-text-label" for="wos_editions_list">Enter a comma separated
           list e.g. "SSCI, A&HCI" of web of science indexes (availability
           may depend on your credentials). Leave blank to include all collections</label>
-
   </div>
 
     {% endif %}

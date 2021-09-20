@@ -478,9 +478,30 @@ class Query(models.Model):
         ('ovid', 'OVID'),
     )
 
+    WOS_COLLECTION_CHOICES = (
+        ('all', 'All Databases'),
+        ('core', 'Web of Science Core Collection'),
+        ('biosis citation', 'BIOSIS Citation Index'),
+        ('biosis previews', 'BIOSIS Previews'),
+        ('kci', 'KCI-Korean Journal Database'),
+        ('medline', 'MEDLINE'),
+        ('russian', 'Russian Science Citation Index'),
+        ('scielo', 'SciELO Citation Index')
+    )
+
+    WOS_EDITION_CHOICES = (
+        ('all', 'All available'),
+        ('SCI-EXPANDED', 'Science Citation Index Expanded (SCI-EXPANDED)--1900-present'),
+        ('SSCI', 'Social Sciences Citation Index (SSCI)--1900-present'),
+        ('AHCI', 'Arts & Humanities Citation Index (AHCI)--1975-present'),
+        ('CPCI-S', 'Conference Proceedings Citation Index – Science (CPCI-S)--1990-present'),
+        ('CPCI-SSH', 'Conference Proceedings Citation Index – Social Science & Humanities (CPCI-SSH)--1990-present'),
+        ('ESCI', 'Emerging Sources Citation Index (ESCI)--2015-present')
+    )
+
     credentials = models.NullBooleanField()
-    editions = models.TextField(null=True)
-    wos_collections = models.TextField(null=True)
+    wos_editions = ArrayField(models.TextField(), null=True, verbose_name="WOS Editions", default=['all'], choices=WOS_EDITION_CHOICES)
+    wos_collection = models.TextField(null=True, verbose_name="WOS Collection", default='core', choices=WOS_COLLECTION_CHOICES)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     qtype       = models.CharField(max_length=2, choices=TYPE_CHOICES, default='DE')
     type        = models.TextField(null=True, verbose_name="Query Type", default="default")
