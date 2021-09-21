@@ -72,86 +72,29 @@
 <div class="explanation">
 <h2> Query Getter </h2>
 
-<p>
-    {% if '@mcc-berlin.net' in request.user.email or '@pik-potsdam' in request.user.email or request.user.profile.unlimited %}
-Use this form to submit a new query, which will be run in the background. Be aware that queries of external databases may take some time, and involve scraping outside websites and downloading large amounts of information.
-<p>It is recommended that you develop a query at the external page (<a href="http://apps.webofknowledge.com/WOS_AdvancedSearch_input.do?SID=3CWPGcaiOusPROlzkHF&product=WOS&search_mode=AdvancedSearch">Web of Science</a> or <a href="https://www.scopus.com/search/form.uri?display=advanced">Scopus</a>). When you enter it here, an assistant will type it into the box on the relevant page, download bibliographic information about all results, and upload them to the server where they can be analysed in more detail.
-<p>Note that larger queries (more than 2000 results in any single year) cannot currently be carried out in Scopus.
-
-    {% endif %}
-<p>"internal" queries compare and combine two existing queries, identified by their IDs, using the operators "NOT", "OR" and "AND"; e.g. "36 AND 42", or "42 NOT 36".
-</p>
 <form action="{% url 'scoping:create_query' project.id %}" method="post">
   {% csrf_token %}
-
-  <h4> Query Title </h4>
-  <input type="text" name="qtitle"></input>
-
-  <input type="hidden" name="qtype" value="default"></input>
-
-  <h4> Query Source </h4>
-
-
-    <select name="qdb" id="databaseSelect" autocomplete="off">
-        {% if '@mcc-berlin.net' in request.user.email or '@pik-potsdam' in request.user.email or request.user.profile.unlimited %}
-        <option value="WoS">Web of Science</option>
-        <option value="scopus">Scopus</option>
-        {% endif %}
-        <option value="intern">Internal</option>
-    </select>
-
-
-    {% if '@mcc-berlin.net' in request.user.email or '@pik-potsdam' in request.user.email or request.user.profile.unlimited %}
-
-  <div >
-      <h4> Use my credentials? </h4>
-    <input type="checkbox" id="credential_check" name="credentials">
-    <label class="form-check-label" for="credential_check">Tick to use the credentials saved on your <a href="{% url 'scoping:userpage' project.id %}">user page</a></label>
-  </div>
-
-  <div>
-      <h4> Web of Science Collection </h4>
-      <input type="text" id="wos_collection_input" name="wos_collection">
-      <label class="form-text-label" for="wos_collection_input">Enter the web of science
-      database you would like to search (availability
-      may depend on your credentials). Leave blank for default (usually Web of Science Core Collection).
-      N.B. anything other than WoS Core may result in more results but with less information about them.
-  </label>
-
-  </div>
-
-  <div>
-      <h4> WOS Editions </h4>
-      <input type="text" id="wos_editions_list" name="wos_editions">
-      <label class="form-text-label" for="wos_editions_list">Enter a comma separated
-          list e.g. "SSCI, A&HCI" of web of science indexes (availability
-          may depend on your credentials). Leave blank to include all collections</label>
-  </div>
-
-    {% endif %}
-  <h4> Query Text </h4>
-  <textarea rows=3 cols=50 name="qtext"></textarea>
-  <br/><br/>
-
+  <table>
+    {{ query_entry_form.as_table }}
+  </table>
   <input type="submit" value="Search Query" />
 </form>
 </div>
-<p>
-
 
 <hr>
-
 
 <div class="explanation">
 <h2> Query Uploader </h2>
 
-<p>
-<a href="{% url 'scoping:query_create' project.id %}">Click</a> to upload a Web of Science or Scopus or RIS file you have downloaded yourself</a>
+<form action="{% url 'scoping:create_query' project.id %}" method="post">
+    {% csrf_token %}
+    <table>
+      {{ query_upload_form.as_table }}
+    </table>
+    <input type="submit" value="Upload Query" />
+</form>
 
 </div>
-
-<p>
-
 
 {% endblock %}
 
@@ -161,22 +104,27 @@ Use this form to submit a new query, which will be run in the background. Be awa
 
 <script>
 
-$("#databaseSelect").change(function(){
-    v = $(this).val()
-    cc = $("#credential_check")
-    cl = $("#collection_list")
-    dl = $("#wos_db_input")
-    if (cc.length > 0) {
-        if (v != "WoS"){
-            cc.prop('checked', false)
-            cl.parent().hide()
-            cc.parent().hide()
-            dl.parent().hide()
-        } else {
-            cc.parent().show()
-            cl.parent().show()
-            dl.parent().show()
-        }
+// show WOS specific fields only if WOS selected as source
+$('#id_database').change(function() {
+    selected = $(this).val()
+    wos_specific = $(".wos-specific")
+    credentials = $("#id_credentials")
+    if (selected == "WoS") {
+        wos_specific.parent().parent().show()
+    } else {
+        credentials.prop("checked", false)
+        wos_specific.parent().parent().hide()
+    }
+})
+
+// display editions picker if WoS core selected
+$("#id_wos_collection").change(function() {
+    selected = $(this).val()
+    core_specific = $(".core-specific")
+    if (selected == 'core') {
+        core_specific.parent().parent().show()
+    } else {
+        core_specific.parent().parent().hide()
     }
 })
 
@@ -193,8 +141,6 @@ function get_table() {
   $(".field_name.tech.active").each(function(){
       techs.push($(this).attr('name'))
   })
-  console.log(users)
-  console.log(techs)
 
   $.ajax({
       url: "{% url 'scoping:query_table' project.id %}",

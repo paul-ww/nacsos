@@ -256,7 +256,7 @@ class QueryCreate(CreateView):
     then uploads the documents into the database
     '''
     model=Query
-    form_class = QueryForm
+    form_class = QueryUploadForm
 
     def get_context_data(self, **kwargs):
         context = super(QueryCreate, self).get_context_data(**kwargs)
@@ -912,13 +912,22 @@ Queries page for the given project
     else:
         extended=False
 
+    if '@mcc-berlin.net' in request.user.email or '@pik-potsdam' in request.user.email or request.user.profile.unlimited:
+        query_entry_form = QueryEntryForm(is_staff=True)
+    else:
+        query_entry_from = QueryEntryForm()
+
+    query_upload_form = QueryUploadForm()
+
     context = {
-      'users'        : users,
-      'techs'        : technologies,
-      'appmode'      : request.session['appmode'],
-      'extended'     : extended,
-      'innovations'  : Innovation.objects.all(),
-      'project'      : p,
+      'users'             : users,
+      'techs'             : technologies,
+      'appmode'           : request.session['appmode'],
+      'extended'          : extended,
+      'innovations'       : Innovation.objects.all(),
+      'project'           : p,
+      'query_entry_form'  : query_entry_form,
+      'query_upload_form' : query_upload_form
     }
 
     return HttpResponse(template.render(context, request))
@@ -3608,7 +3617,7 @@ def add_doc_form(request,pid=0,authtoken=0,r=0,did=0):
                         )
                     surl = short_url.encode_url(url.id)
                     ut, created = UT.objects.get_or_create(UT=surl)
-                    if created and did is not 0:
+                    if created and did != 0:
                         doc = Doc.objects.get(pk=did)
                         doc.UT.delete()
                         doc.UT=ut

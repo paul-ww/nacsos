@@ -479,7 +479,6 @@ class Query(models.Model):
     )
 
     WOS_COLLECTION_CHOICES = (
-        ('all', 'All Databases'),
         ('core', 'Web of Science Core Collection'),
         ('biosis citation', 'BIOSIS Citation Index'),
         ('biosis previews', 'BIOSIS Previews'),
@@ -490,7 +489,6 @@ class Query(models.Model):
     )
 
     WOS_EDITION_CHOICES = (
-        ('all', 'All available'),
         ('SCI-EXPANDED', 'Science Citation Index Expanded (SCI-EXPANDED)--1900-present'),
         ('SSCI', 'Social Sciences Citation Index (SSCI)--1900-present'),
         ('AHCI', 'Arts & Humanities Citation Index (AHCI)--1975-present'),
@@ -498,9 +496,10 @@ class Query(models.Model):
         ('CPCI-SSH', 'Conference Proceedings Citation Index – Social Science & Humanities (CPCI-SSH)--1990-present'),
         ('ESCI', 'Emerging Sources Citation Index (ESCI)--2015-present')
     )
+    WOS_EDITION_CHOICES = ((key, val.split('--')[0]) for key, val in WOS_EDITION_CHOICES)
 
-    credentials = models.NullBooleanField()
-    wos_editions = ArrayField(models.TextField(), null=True, verbose_name="WOS Editions", default=['all'], choices=WOS_EDITION_CHOICES)
+    credentials = models.NullBooleanField(verbose_name="Use credentials")
+    wos_editions = ArrayField(models.TextField(), null=True, verbose_name="WOS Editions", default=list, choices=WOS_EDITION_CHOICES)
     wos_collection = models.TextField(null=True, verbose_name="WOS Collection", default='core', choices=WOS_COLLECTION_CHOICES)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     qtype       = models.CharField(max_length=2, choices=TYPE_CHOICES, default='DE')
@@ -522,7 +521,7 @@ class Query(models.Model):
     dlstat      = models.CharField(max_length=6,null=True, verbose_name="Query download status")
     category  = models.ForeignKey('Category', on_delete=models.CASCADE, null=True)
     innovation  = models.ForeignKey('Innovation', on_delete=models.CASCADE, null=True)
-    query_file = models.FileField(upload_to='queries/',null=True)
+    query_file = models.FileField(upload_to='queries/', null=True, verbose_name="Query file(s)")
     queries = models.ManyToManyField("self",symmetrical=False)
     upload_log = models.TextField(null=True)
 

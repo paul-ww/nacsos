@@ -1,4 +1,5 @@
 from django import forms
+from django.forms.widgets import TextInput, Select, CheckboxInput, CheckboxSelectMultiple, HiddenInput, ClearableFileInput
 from .models import *
 from dal import autocomplete
 from tmv_app.models import *
@@ -10,16 +11,56 @@ class ProjectForm(forms.ModelForm):
         model = (Project)
         fields = ('title', 'description',)
 
-class QueryForm(forms.ModelForm):
-    title = forms.CharField()
-    query_file = forms.FileField(
-        label = "Query file(s)", widget=forms.ClearableFileInput(attrs={'multiple': True})
-    )
+class QueryEntryForm(forms.ModelForm):
     class Meta:
-        model = (Query)
-        fields=["title","text","database","query_file"]
+        model = Query
+        fields = ['title', 'database', 'credentials', 'wos_collection', 'wos_editions', 'text']
+        wos_specific = 'wos-specific'
+        widgets = {
+            'title': TextInput(),
+            'database': Select(),
+            'credentials': CheckboxInput(attrs={'class': wos_specific}),
+            'wos_collection': Select(attrs={'class': wos_specific}),
+            'wos_editions': CheckboxSelectMultiple(attrs={'class': f'{wos_specific} core-specific'})
+        }
         help_texts = {
-            'query_file': 'Accepted formats are WoS/Scopus text files or RIS files',
+            'database': '"Internal" queries compare and combine two existing queries, \
+                identified by their IDs, using the operators "NOT", "OR" and "AND"; \
+                e.g. "36 AND 42", or "42 NOT 36".',
+            'credentials': 'Tick to use the credentials saved on your \
+                <a href="{% url "scoping:userpage" project.id %}">user page',
+            'wos_collection': 'Choose the web of science database you would like to search. \
+                Availability may depend on your credentials. The default option is the Web of \
+                Science Core Collection). N.B. anything other than WoS Core may result in more \
+                results but with less information about them.',
+            'wos_editions': 'Narrow the search down to specific editions (availability \
+                may depend on your credentials). If no option is picked, all editions \
+                are included.'
+        }
+
+    def __init__(self, *args, **kwargs):
+        is_staff = kwargs.pop('is_staff')
+        super(QueryEntryForm, self).__init__(*args, **kwargs)
+        if is_staff:
+            self.fields['database'].initial = 'WoS'
+            self.fields['wos_collection'].initial = 'core'
+            self.fields['wos_editions'].initial = []
+        if not is_staff:
+            self.fields['database'].choices = [('intern','Internal')]
+            for field_name in ['credentials', 'wos_collection', 'wos_editions']:
+                self.fields[field_name].widget = HiddenInput()
+
+class QueryUploadForm(forms.ModelForm):
+    class Meta:
+        model = Query
+        fields=["query_file"]
+        widgets = {
+            'query_file': ClearableFileInput(attrs={'multiple': True})
+        }
+        help_texts = {
+            'query_file': 'Upload a Web of Science or Scopus or RIS file you have \
+                downloaded yourself. Accepted formats are WoS/Scopus text files or \
+                RIS files',
         }
 
 class CatIntForm(forms.Form):
