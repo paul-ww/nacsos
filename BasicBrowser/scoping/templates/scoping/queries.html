@@ -104,6 +104,9 @@
 
 <script>
 
+// hide empty option for WOS editions
+$('#id_wos_editions_0').parent().parent().hide()
+
 // show WOS specific fields only if WOS selected as source
 $('#id_database').change(function() {
     selected = $(this).val()
