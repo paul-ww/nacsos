@@ -912,13 +912,6 @@ Queries page for the given project
     else:
         extended=False
 
-    if '@mcc-berlin.net' in request.user.email or '@pik-potsdam' in request.user.email or request.user.profile.unlimited:
-        query_entry_form = QueryEntryForm(is_staff=True)
-    else:
-        query_entry_from = QueryEntryForm()
-
-    query_upload_form = QueryUploadForm()
-
     context = {
       'users'             : users,
       'techs'             : technologies,
@@ -926,8 +919,8 @@ Queries page for the given project
       'extended'          : extended,
       'innovations'       : Innovation.objects.all(),
       'project'           : p,
-      'query_entry_form'  : query_entry_form,
-      'query_upload_form' : query_upload_form
+      'query_entry_form'  : QueryEntryForm(user=request.user),
+      'query_upload_form' : QueryUploadForm()
     }
 
     return HttpResponse(template.render(context, request))
@@ -1286,56 +1279,30 @@ import sys
 @login_required
 def create_query(request, pid):
 
-    #ssh_test()
+    if request.method == 'POST':
 
-    qtitle = request.POST['qtitle']
-    qdb    = request.POST['qdb']
-    qtype  = request.POST['qtype']
-    qtext  = request.POST['qtext']
+        project = Project.objects.get(pk=pid)
+        project_role = ProjectRoles.objects.get(project=project,user=request.user).role
+        if not (project_role in ['OW', 'AD']):
+            return HttpResponseRedirect(reverse('scoping:queries', kwargs={'pid': pid}))
 
-    cred = request.POST.get('credentials',None)
-    wos_editions = request.POST.get('wos_editions', None)
-    wos_collection = request.POST.get('wos_collection', None)
-    if cred:
-        cred = True
+        query_entry_form = QueryEntryForm(request.POST, user=request.user)
 
-    p = Project.objects.get(pk=pid)
+        if query_entry_form.is_valid():
+            query = query_entry_form.save(commit=False)
+            query.project = Project.objects.get(pk=pid)
+            query.save()
 
-    pr = ProjectRoles.objects.get(project=p,user=request.user).role
+            do_query.delay(query.id)
 
-    if pr in ['OW', 'AD']:
-        admin = True
-    else: # STOP! and go back with a good message
-        admin = False
-        return HttpResponseRedirect(reverse('scoping:queries', kwargs={'pid': pid}))
-
-
-
-    #  create a new query record in the database
-    q = Query(
-        title=qtitle,
-        type=qtype,
-        text=qtext,
-        project=p,
-        creator = request.user,
-        date = timezone.now(),
-        database = qdb,
-        credentials = cred,
-        wos_editions = wos_collections,
-        wos_collection = wos_collection
-    )
-    q.save()
-
-    do_query.delay(q.id)
-
-    if q.database=="intern":
-        time.sleep(2)
-        return HttpResponseRedirect(reverse('scoping:doclist', kwargs={'pid': pid, 'qid': q.id }))
-    else:
-        return HttpResponseRedirect(reverse(
-            'scoping:querying',
-            kwargs={'qid': q.id, 'substep': 0, 'docadded': 0, 'q2id': 0}
-        ))
+            if query.database=="intern":
+                time.sleep(2)
+                return HttpResponseRedirect(reverse('scoping:doclist', kwargs={'pid': pid, 'qid': query.id }))
+            else:
+                return HttpResponseRedirect(reverse(
+                    'scoping:querying',
+                    kwargs={'qid': query.id, 'substep': 0, 'docadded': 0, 'q2id': 0}
+                ))
 
 #########################################################
 ## Start snowballing

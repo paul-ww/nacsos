@@ -499,7 +499,7 @@ class Query(models.Model):
     WOS_EDITION_CHOICES = ((key, val.split('--')[0]) for key, val in WOS_EDITION_CHOICES)
 
     credentials = models.NullBooleanField(verbose_name="Use credentials")
-    wos_editions = ArrayField(models.TextField(), null=True, verbose_name="WOS Editions", default=list, choices=WOS_EDITION_CHOICES)
+    wos_editions = ArrayField(models.TextField(), null=True, blank=True, default=list, verbose_name="WOS Editions", choices=WOS_EDITION_CHOICES)
     wos_collection = models.TextField(null=True, verbose_name="WOS Collection", default='core', choices=WOS_COLLECTION_CHOICES)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     qtype       = models.CharField(max_length=2, choices=TYPE_CHOICES, default='DE')

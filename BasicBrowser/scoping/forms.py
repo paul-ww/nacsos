@@ -14,10 +14,12 @@ class ProjectForm(forms.ModelForm):
 class QueryEntryForm(forms.ModelForm):
     class Meta:
         model = Query
-        fields = ['title', 'database', 'credentials', 'wos_collection', 'wos_editions', 'text']
+        fields = ['title', 'type', 'creator', 'database', 'credentials', 'wos_collection', 'wos_editions', 'text']
         wos_specific = 'wos-specific'
         widgets = {
             'title': TextInput(),
+            'type': HiddenInput(),
+            'creator': HiddenInput(),
             'database': Select(),
             'credentials': CheckboxInput(attrs={'class': wos_specific}),
             'wos_collection': Select(attrs={'class': wos_specific}),
@@ -35,20 +37,43 @@ class QueryEntryForm(forms.ModelForm):
                 results but with less information about them.',
             'wos_editions': 'Narrow the search down to specific editions (availability \
                 may depend on your credentials). If no option is picked, all editions \
-                are included.'
+                are included.',
+            'text': 'Use this form to submit a new query, which will be run in the background. \
+                Be aware that queries of external databases may take some time, and involve \
+                scraping outside websites and downloading large amounts of information. \
+                It is recommended that you develop a query at the external page \
+                (<a href="http://apps.webofknowledge.com/WOS_AdvancedSearch_input.do?SID=3CWPGcaiOusPROlzkHF&product=WOS&search_mode=AdvancedSearch">Web of Science</a> \
+                or <a href="https://www.scopus.com/search/form.uri?display=advanced">Scopus</a>). \
+                When you enter it here, an assistant will type it into the box on the relevant page, \
+                download bibliographic information about all results, and upload them to the server \
+                where they can be analysed in more detail. \
+                Note that larger queries (more than 2000 results in any single year) cannot currently \
+                be carried out in Scopus.'
         }
 
     def __init__(self, *args, **kwargs):
-        is_staff = kwargs.pop('is_staff')
+        user = kwargs.pop('user')
         super(QueryEntryForm, self).__init__(*args, **kwargs)
-        if is_staff:
-            self.fields['database'].initial = 'WoS'
-            self.fields['wos_collection'].initial = 'core'
-            self.fields['wos_editions'].initial = []
-        if not is_staff:
+        self.fields['creator'].initial = user
+        if self._is_staff(user):
+            initial_values = {
+                'database': 'WoS',
+                'wos_collection': 'core',
+                'wos_editions': list
+            }
+            for field, val in initial_values.items():
+                self.fields[field].initial = val
+        else:
             self.fields['database'].choices = [('intern','Internal')]
             for field_name in ['credentials', 'wos_collection', 'wos_editions']:
                 self.fields[field_name].widget = HiddenInput()
+
+    @staticmethod
+    def _is_staff(user: User):
+        if '@mcc-berlin.net' in user.email or '@pik-potsdam' in user.email or user.profile.unlimited:
+            return True
+        else:
+            return False
 
 class QueryUploadForm(forms.ModelForm):
     class Meta:
