@@ -78,8 +78,9 @@ class QueryEntryForm(forms.ModelForm):
 class QueryUploadForm(forms.ModelForm):
     class Meta:
         model = Query
-        fields=["query_file"]
+        fields=["title","text","database", "query_file"]
         widgets = {
+            'title': TextInput(),
             'query_file': ClearableFileInput(attrs={'multiple': True})
         }
         help_texts = {

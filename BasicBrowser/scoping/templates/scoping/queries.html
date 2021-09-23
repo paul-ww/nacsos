@@ -84,16 +84,11 @@
 <hr>
 
 <div class="explanation">
-<h2> Query Uploader </h2>
-
-<form action="{% url 'scoping:create_query' project.id %}" method="post">
-    {% csrf_token %}
-    <table>
-      {{ query_upload_form.as_table }}
-    </table>
-    <input type="submit" value="Upload Query" />
-</form>
-
+    <h2> Query Uploader </h2>
+    
+    <p>
+        <a href="{% url 'scoping:query_create' project.id %}">Click</a> to upload a Web of Science or Scopus or RIS file you have downloaded yourself</a>
+    </p>
 </div>
 
 {% endblock %}
