@@ -99,8 +99,10 @@
 
 <script>
 
-// hide empty option for WOS editions
-$('#id_wos_editions_0').parent().parent().hide()
+$(document).ready(function(){
+    blank_edition_option = $('#id_wos_editions_0')
+    blank_edition_option.parent().parent().hide()
+});
 
 // show WOS specific fields only if WOS selected as source
 $('#id_database').change(function() {
@@ -109,6 +111,7 @@ $('#id_database').change(function() {
     credentials = $("#id_credentials")
     if (selected == "WoS") {
         wos_specific.parent().parent().show()
+        blank_edition_option.parent().parent().hide()
     } else {
         credentials.prop("checked", false)
         wos_specific.parent().parent().hide()
@@ -121,6 +124,7 @@ $("#id_wos_collection").change(function() {
     core_specific = $(".core-specific")
     if (selected == 'core') {
         core_specific.parent().parent().show()
+        blank_edition_option.parent().parent().hide()
     } else {
         core_specific.parent().parent().hide()
     }
