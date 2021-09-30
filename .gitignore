@@ -31,3 +31,4 @@ BasicBrowser/tweets/*
 *nohup.out
 docs/*
 tweets/*
+.vscode
