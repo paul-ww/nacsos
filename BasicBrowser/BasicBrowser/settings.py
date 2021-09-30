@@ -13,24 +13,16 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 from dotenv import load_dotenv
 
-from fnmatch import fnmatch
-class glob_list(list):
-    def __contains__(self, key):
-        for elt in self:
-            if fnmatch(key, elt): return True
-        return False
-
 load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-MAINTENANCE = os.environ['MAINTENANCE']
-DEBUG = os.environ['DEBUG']
-INTERNAL_IPS = glob_list(os.environ['INTERNAL_IPS'])
+MAINTENANCE = (os.getenv('MAINTENANCE', 'False') == 'True')
+DEBUG = (os.getenv('DEBUG', 'False') == 'True')
+INTERNAL_IPS = os.environ['INTERNAL_IPS']
 ALLOWED_HOSTS = os.environ['ALLOWED_HOSTS']
-
 
 # Application definition
 
@@ -128,13 +120,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
@@ -176,7 +164,7 @@ DATABASES = {
 POSTGRES_EXTRA_DB_BACKEND_BASE = 'django.contrib.gis.db.backends.postgis'  
 
 ## CELERY SETTINGS
-CELERY_BROKER_URL = os.environ['QUERY_DIR']
+CELERY_BROKER_URL = os.environ['CELERY_BROKER_URL']
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
