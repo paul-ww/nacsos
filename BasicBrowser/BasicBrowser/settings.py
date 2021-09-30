@@ -11,24 +11,25 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from dotenv import load_dotenv
 
-# SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = '@-*jt+re$+w6i1nd53x&p5e&#@rv##*yv_fkebk_1%0z!=#3q4'
+from fnmatch import fnmatch
+class glob_list(list):
+    def __contains__(self, key):
+        for elt in self:
+            if fnmatch(key, elt): return True
+        return False
 
-
+load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
-
 # SECURITY WARNING: don't run with debug turned on in production!
-
-MAINTENANCE = False
-
-ALLOWED_HOSTS = ['*']
+MAINTENANCE = os.environ['MAINTENANCE']
+DEBUG = os.environ['DEBUG']
+INTERNAL_IPS = glob_list(os.environ['INTERNAL_IPS'])
+ALLOWED_HOSTS = os.environ['ALLOWED_HOSTS']
 
 
 # Application definition
@@ -85,8 +86,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'BasicBrowser.urls'
 
-
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -105,13 +104,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'BasicBrowser.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -150,15 +142,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/tmv/BasicBrowser/static/'
-
-#MEDIA_URL = '/pdfs/'
-#MEDIA_ROOT = '/queries/pdfs/' #os.path.join(BASE_DIR, 'media')
+STATIC_ROOT = os.environ['STATIC_ROOT']
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_ROOT = '/var/www/tmv/BasicBrowser/media'
-QUERY_DIR = '/usr/local/apsis/queries/'
+MEDIA_ROOT = os.environ['MEDIA_ROOT']
+
+QUERY_DIR = os.environ['QUERY_DIR']
 
 CACHES = {
     'default': {
@@ -171,10 +160,59 @@ CACHES = {
     }
 }
 
+
+## DATABASE SETTINGS
+DATABASES = {
+    'default': {
+        'ENGINE': 'psqlextra.backend',
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
+        'HOST': os.environ['DB_HOST'],
+        'PORT': '',
+    }
+}
+
+POSTGRES_EXTRA_DB_BACKEND_BASE = 'django.contrib.gis.db.backends.postgis'  
+
 ## CELERY SETTINGS
-CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_BROKER_URL = os.environ['QUERY_DIR']
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-from .settings_local import *
+## EMAIL SETTINGS
+EMAIL_HOST = os.environ['EMAIL_HOST']
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_PORT = os.environ['EMAIL_PORT']
+
+## SECRETS
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ['SECRET_KEY']
+CONSUMER_KEY = os.environ['CONSUMER_KEY']
+CONSUMER_SECRET = os.environ['CONSUMER_SECRET']
+ACCESS_TOKEN = os.environ['ACCESS_TOKEN']
+ACCESS_SECRET = os.environ['ACCESS_SECRET']
+
+V2_API_KEY = os.environ['V2_API_KEY']
+V2_API_SECRET_KEY = os.environ['V2_API_SECRET_KEY']
+V2_BEARER_TOKEN = os.environ['V2_BEARER_TOKEN']
+
+WARP_LDA_PATH = os.environ['WARP_LDA_PATH']
+
+DEBUG_TOOLBAR_PANELS = (
+  'debug_toolbar.panels.version.VersionDebugPanel',
+  'debug_toolbar.panels.timer.TimerDebugPanel',
+  'debug_toolbar.panels.settings.SettingsPanel',
+  'debug_toolbar.panels.headers.HeadersPanel',
+  'debug_toolbar.panels.request.RequestPanel',
+  'debug_toolbar.panels.sql.SQLPanel',
+  'debug_toolbar.panels.templates.TemplatesPanel',
+  #'debug_toolbar.panels.signals.SignalsPanel',
+  #'debug_toolbar.panels.profiling.ProfilingDebugPanel',
+  'debug_toolbar.panels.cache.CachePanel',
+)
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TEMPLATE_CONTEXT': True,
+}
