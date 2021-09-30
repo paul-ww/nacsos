@@ -2,3 +2,4 @@
 venv
 .github
 .vscode
+.env
