@@ -44,7 +44,7 @@ DEBUG = True
 MAINTENANCE = False
 
 # Network
-INTERNAL_IPS = ['127.0.0.1']
+INTERNAL_IPS = ['127.0.0.1', '192.168.*.*']
 ALLOWED_HOSTS = ['*']
 
 # Celery
