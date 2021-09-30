@@ -108,7 +108,7 @@ celery -A BasicBrowser.celery worker --loglevel=info
 
 ### Start a local server
 
-Now you should be done, and ready to run a local server. ´cd´ into `BasicBrowser` and run
+Now you should be done, and ready to run a local server. `cd` into `BasicBrowser` and run
 
 ```
 python manage.py runserver
