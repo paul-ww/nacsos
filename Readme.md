@@ -24,131 +24,62 @@ If you use NACSOS in academic work, you can cite it as
 
 Max Callaghan, Finn Müller-Hansen, Jérôme Hilaire, & Yuan Ting Lee. (2020). NACSOS: NLP Assisted Classification, Synthesis and Online Screening. Zenodo. http://doi.org/10.5281/zenodo.4121525
 
+### Install Docker
+[Installing Docker](https://docs.docker.com/get-docker/) allows each component to run within its own container.
 
-## A general guide to installation
+### Install VSCode
+It is recommended to [install VSCode](https://code.visualstudio.com/docs/setup/linux) along with the [Docker extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) to quickly setup a development environment for NACSOS.
 
-The following instructions assume installation on Ubuntu (18). Consult the internet for setting up PostgreSQL and Python/pip in other environments.
-
-### Setting up PostgreSQL
-
-If you do not have PostgreSQL installed already, install it. At time of writing, the latest release was PostgreSQL 10. This version is assumed. We also need postgis to handle geographical data
-
-```
-sudo apt update
-sudo apt install postgresql postgresql-contrib postgis
-```
-
-Log on as the postgres user and start PostgreSQL
-```
-sudo -u postgres  -i
-psql
-```
-
-Create a new user for this app (call it whatever you like), use a secure password, in single quotes:
-```
-CREATE USER scoper WITH PASSWORD 'secure_password';
-```
-
-Create a database for the app, use whatever name you like:
-```
-CREATE DATABASE scoping_tmv OWNER scoper;
-```
-
-Connect to the database and create a postgis extension
-
-```
-\connect scoping_tmv_legacy;
-CREATE EXTENSION postgis;
-```
-
-Create a trigram extension
-
-```
-CREATE EXTENSION pg_trgm;
-```
-
-Quit PostgreSQL and log out of the postgres user role
-
-```
-\q
-exit
-```
-
-### Setting up Celery
-We use celery to execute computation-heavy tasks in the background.
-To do this we need to install the *message broker* RabbitMQ
-
-```
-sudo apt-get install rabbitmq-server
-sudo systemctl enable rabbitmq-server
-sudo systemctl start rabbitmq-server
-```
-
-To start celery, run
-
-```
-celery -A config worker --loglevel=info
-```
+### Building the project using Docker
+If you have VSCode installed, it should be enough to clone this repository and to wait for the prompt to `Reopen this project inside a container`. The images will then be built and the current directory opened inside the main Docker container.
 
 ### Setting up scoping-tmv
-
-Operating in a virtual environment is **highly** recommended
-
-```
-pip3 install --user virtualenvironment
-
-virtualenv -p python3 venv
-
-source venv/bin/activate
-```
-
-Quickly install some system-level dependencies that the python packages need. Depending on your system configuration, you may need to install further system packages if the pip installation runs into errors.
+We use an `.env` file to load local settings as well as sensitive variables. Copy the template below, replacing the secret information with your own and store it as `.env` in the root of this repository.
 
 ```
-sudo apt-get install libfreetype6-dev libpq-dev python-cffi libffi6 libffi-dev libxml2-dev libxslt1-dev
-```
+# Store this as '.env' in the repository root
 
-Once in the environment (or out of it at your own peril), install dependencies. Use requirements/local.txt for a local environment, or requirements/production.txt for a production environment.
-
-```
-pip install -Ur requirements.txt
-```
-
-This can take a while...
-
-Now you need to add the file `BasicBrowser/BasicBrowser/settings_local.py`, which will not be commited, as it contains your secret information. Copy the template below, replacing the secret information with your own.
-
-```
-import os
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = SECRET_KEY
-
-# Set debug true in development settings, and false in production
+# Debug Mode
 DEBUG = True
+MAINTENANCE = False
 
-from fnmatch import fnmatch
-class glob_list(list):
-    def __contains__(self, key):
-        for elt in self:
-            if fnmatch(key, elt): return True
-        return False
+# Network
+INTERNAL_IPS = ['127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
-INTERNAL_IPS = glob_list([The ips to be marked as internal])
+# Celery
+CELERY_BROKER_URL = redis://redis:6379/0
 
+# Database
+DB_NAME = scoping_tmv
+DB_USER = scoper
+DB_PASSWORD = secure_password
+DB_HOST = db
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DATABASE_NAME,
-        'USER': DATABASE_USER,
-        'PASSWORD': PASSWORD,
-        'HOST': 'localhost',
-        'PORT': '',
-    }
-}
+# Email
+EMAIL_HOST = your-email-server
+EMAIL_HOST_USER = your-email-user
+EMAIL_PORT = your-email-port
 
+# Secrets
+SECRET_KEY = your-secret
+CONSUMER_KEY = your-key
+CONSUMER_SECRET = your-secret
+ACCESS_TOKEN = your-token
+ACCESS_SECRET = your-secret
+
+V2_API_KEY = your-key
+V2_API_SECRET_KEY = your-key
+V2_BEARER_TOKEN = your-token
+
+# Paths
+STATIC_ROOT = /var/www/tmv/BasicBrowser/static/
+MEDIA_ROOT = /var/www/tmv/BasicBrowser/media
+QUERY_DIR = /usr/local/apsis/queries/
+WARP_LDA_PATH = /home/galm/software/warplda/release/src
 ```
+
+### Create a superuser
 
 Create an admin user if using on a clean database
 
@@ -156,7 +87,28 @@ Create an admin user if using on a clean database
 python manage.py createsuperuser
 ```
 
-Now you should be done, and ready to run a local server
+### Prepare and make outstanding migrations
+
+Since some tables might be missing if working with a clean DB, make sure that all migrations
+have been prepared and run. `cd` into `BasicBrowser` and run
+
+```
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### Setting up Celery
+We use celery to execute computation-heavy tasks in the background.
+
+To start celery, `cd` into `BasicBrowser` and run
+
+```
+celery -A BasicBrowser.celery worker --loglevel=info
+```
+
+### Start a local server
+
+Now you should be done, and ready to run a local server. ´cd´ into `BasicBrowser` and run
 
 ```
 python manage.py runserver
