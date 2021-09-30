@@ -18,6 +18,10 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 # RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt \
 #    && rm -rf /tmp/pip-tmp
 
+# Add Chrome repository
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
      && apt-get -y install --no-install-recommends libfreetype6-dev libpq-dev python3-cffi \
@@ -25,9 +29,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
                                                    libproj-dev gdal-bin xvfb
 
 # Install Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-     && apt install ./google-chrome-stable_current_amd64.deb \
-     && rm ./google-chrome-stable_current_amd64.deb
+RUN apt-get -y install google-chrome-stable
 
 # Install requirements
 COPY BasicBrowser/requirements_docker.txt .
