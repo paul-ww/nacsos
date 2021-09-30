@@ -22,7 +22,12 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
      && apt-get -y install --no-install-recommends libfreetype6-dev libpq-dev python3-cffi \
                                                    libxml2-dev libxslt1-dev libgdal-dev binutils \
-                                                   libproj-dev gdal-bin
+                                                   libproj-dev gdal-bin xvfb
+
+# Install Chrome
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+     && apt install ./google-chrome-stable_current_amd64.deb \
+     && rm ./google-chrome-stable_current_amd64.deb
 
 # Install requirements
 COPY BasicBrowser/requirements_docker.txt .
