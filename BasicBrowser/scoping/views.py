@@ -1360,7 +1360,7 @@ def start_snowballing(request):
     # run "scrapeQuery.py" on the text file in the background
     if request.session['DEBUG']:
         print("start_snowballing: starting scraping process on "+q.database+" (backward query).")
-    subprocess.Popen(["python3", "/home/galm/software/scrapewos/bin/scrapeQuery.py","-s", qdb, fname])
+    subprocess.Popen(["scrapeQuery","-s", qdb, fname])
 
     #####
     ## This bit starts up the forward snowballing
@@ -1390,7 +1390,7 @@ def start_snowballing(request):
     # run "scrapeQuery.py" on the text file in the background
     if request.session['DEBUG']:
         print("start_snowballing: starting scraping process on "+q2.database+" (forward query).")
-    subprocess.Popen(["python3", "/home/galm/software/scrapewos/bin/snowball_fast.py", "-s", qdb, fname])
+    subprocess.Popen(["snowBall", "-s", qdb, fname])
 
     return HttpResponseRedirect(reverse('scoping:snowball_progress', kwargs={'sbs': sbs.id}))
 
@@ -1452,7 +1452,7 @@ def do_snowballing(request,qid,q2id):
         time.sleep(1)
 
         # run "scrapeQuery.py" on the text file in the background
-        p_b = subprocess.Popen(["python3", "/home/galm/software/scrapewos/bin/scrapeQuery.py","-s", qdb, fname])
+        p_b = subprocess.Popen(["scrapeQuery","-s", qdb, fname])
 
         #return HttpResponseRedirect(reverse('scoping:querying', kwargs={'qid': q.id, 'substep': 1, 'docadded': 0, 'q2id': 0}))
 
@@ -1509,7 +1509,7 @@ def do_snowballing(request,qid,q2id):
         time.sleep(1)
 
         # run "scrapeQuery.py" on the text file in the background
-        p_f = subprocess.Popen(["python3", "/home/hilj/python_apsis_libs/scrapeWoS/bin/snowball_fast.py","-s", qdb, fname])
+        p_f = subprocess.Popen(["snowBall","-s", qdb, fname])
 
         q2id = q_f.id
 
@@ -1831,7 +1831,7 @@ def snowball_progress(request,sbs):
                     fname = query_b2.txtfile()
                     with open(fname,encoding='utf-8',mode='w') as qfile:
                         qfile.write(query_b2.text)
-                        subprocess.Popen(["python3", "/home/galm/software/scrapewos/bin/scrapeQuery.py", "-s", query_b2.database, fname])
+                        subprocess.Popen(["scrapeQuery", "-s", query_b2.database, fname])
 
     if not do_backward_query or not do_forward_query:
         if request.session['DEBUG']:

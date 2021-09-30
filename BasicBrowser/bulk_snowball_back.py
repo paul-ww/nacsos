@@ -46,8 +46,8 @@ def main():
     with open(fname,"w") as qfile:
         qfile.write(qtext)
 
-    subprocess.Popen(["python3",
-        "/home/galm/software/scrapewos/bin/scrapeQuery.py",
+    subprocess.Popen([
+        "scrapeQuery",
         "-s", "scopus", fname
     ]).wait()
 
@@ -74,8 +74,8 @@ def main():
     with open(fname,"w") as qfile:
         qfile.write(query_b2.text)
 
-    subprocess.Popen(["python3",
-        "/home/galm/software/scrapewos/bin/scrapeQuery.py",
+    subprocess.Popen([
+        "scrapeQuery",
         "-s", "scopus", fname
     ]).wait()
 
