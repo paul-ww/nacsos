@@ -76,7 +76,7 @@ def update_techs(pid):
 def upload_docs(qid, update, merge=False):
     print("Uploading docs for query {}".format(qid))
     print(upload_docs.request.id)
-    from celery.task.control import  inspect
+    from celery.app.control import  inspect
     i = inspect()
     s = i.reserved()
     a = i.active()
