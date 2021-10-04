@@ -94,7 +94,7 @@ def upload_docs(qid, update, merge=False):
 
     title = str(q.id)
 
-    if q.query_file.name is '':
+    if q.query_file.name == '':
         fname = settings.QUERY_DIR+title+"/results.txt"
     else:
         fname = q.query_file.path
@@ -114,7 +114,7 @@ def upload_docs(qid, update, merge=False):
     elif q.database =="WoS":
         print("WoS")
         with open(fname, encoding="utf-8") as res:
-            if q.wos_db is not None and q.wos_db is not '':
+            if q.wos_db is not None and q.wos_db != '':
                 from django.db import connection
                 connection.close()
                 r_count = read_wos(res, q, update, deduplicate=True)
@@ -123,7 +123,7 @@ def upload_docs(qid, update, merge=False):
 
     else:
         print("Scopus")
-        if q.query_file.name is '':
+        if q.query_file.name == '':
             fname = fname.replace('results','s_results')
         if not os.path.exists(fname):
             d = settings.QUERY_DIR+title
