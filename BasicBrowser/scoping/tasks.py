@@ -2,7 +2,9 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from tmv_app.models import RunStats
 from scoping.models import *
-from scoping import utils
+import scoping.utils.utils as scoping_utils
+import utils.utils as app_utils
+from BasicBrowser.celery import app
 import os
 from django import db
 from psycopg2.extras import *
@@ -75,14 +77,14 @@ def update_techs(pid):
 def upload_docs(qid, update, merge=False):
     print("Uploading docs for query {}".format(qid))
     print(upload_docs.request.id)
-    from celery.app.control import  inspect
-    i = inspect()
+    i = app.control.inspect()
     s = i.reserved()
     a = i.active()
     if a is not None and s is not None:
-        for t in utils.flatten(list(a.values()) + list(s.values())):
+        for t in app_utils.flatten(list(a.values()) + list(s.values())):
+            print(t)
             if "upload_docs" in t["name"]:
-                if eval(t['args'])[0] == qid:
+                if t['args'][0] == qid:
                     if str(t['id']) != str(upload_docs.request.id):
                         print("already running!")
                         return qid
@@ -101,14 +103,14 @@ def upload_docs(qid, update, merge=False):
     print(q.title)
 
     if ".xml" in q.query_file.name.lower():
-        r_count = utils.read_xml(q,update)
+        r_count = scoping_utils.read_xml(q,update)
 
     elif ".RIS" in q.query_file.name or ".ris" in q.query_file.name:
-        r_count = utils.read_ris(q,update)
+        r_count = scoping_utils.read_ris(q,update)
 
     elif ".csv" in q.query_file.name:
         print("CSV")
-        r_count = utils.read_csv(q)
+        r_count = scoping_utils.read_csv(q)
 
     elif q.database =="WoS":
         print("WoS")
@@ -116,9 +118,9 @@ def upload_docs(qid, update, merge=False):
             if q.wos_db is not None and q.wos_db != '':
                 from django.db import connection
                 connection.close()
-                r_count = utils.read_wos(res, q, update, deduplicate=True)
+                r_count = scoping_utils.read_wos(res, q, update, deduplicate=True)
             else:
-                r_count = utils.read_wos(res, q, update)
+                r_count = scoping_utils.read_wos(res, q, update)
 
     else:
         print("Scopus")
@@ -138,7 +140,7 @@ def upload_docs(qid, update, merge=False):
                                     pass
                         #os.remove(d + "/" + f)
         with open(fname, encoding="utf-8") as res:
-            r_count = utils.read_scopus(res, q, update)
+            r_count = scoping_utils.read_scopus(res, q, update)
 
     print(r_count)
     db.connections.close_all()
