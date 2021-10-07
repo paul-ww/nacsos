@@ -112,6 +112,10 @@ def upload_docs(qid, update, merge=False):
         print("CSV")
         r_count = scoping_utils.read_csv(q)
 
+    elif ".jsonl" in q.query_file.name:
+        print("JSONL")
+        r_count = scoping_utils.read_jsonl(q, update)
+
     elif q.database =="WoS":
         print("WoS")
         with open(fname, encoding="utf-8") as res:
